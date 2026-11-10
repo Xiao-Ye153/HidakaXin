@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 // the regex can be corrected instead of guessed again.
 
 const UA = 'Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
+const UA_DESKTOP = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 function decodeHtmlEntities(str) {
   return str
@@ -63,6 +64,30 @@ function extractMetadata(html) {
     if (parsed) return { metadata: parsed, via: attempts };
   }
 
+  // Strategy 4: OK.ru kadang menaruh semua JSON sebagai entity HTML (&quot;)
+  // di mana saja, bukan cuma di data-options. Decode seluruh halaman dulu,
+  // baru cari ulang blok metadata (string ter-escape ATAU object mentah).
+  const decoded = decodeHtmlEntities(html);
+  m = decoded.match(/"metadata"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if (m) {
+    attempts.push('metadata string setelah decode entity');
+    const metaStr = m[1].replace(/\\"/g, '"').replace(/\\\//g, '/').replace(/\\\\/g, '\\');
+    const parsed = tryParse(metaStr);
+    if (parsed) return { metadata: parsed, via: attempts };
+  }
+
+  // Strategy 5: data-options dengan kutip tunggal / tanpa kata "metadata"
+  // di dalamnya (struktur berubah) — coba semua data-options yang ada.
+  for (const mm of html.matchAll(/data-options=(["'])([\s\S]*?)\1/g)) {
+    const opt = tryParse(decodeHtmlEntities(mm[2]));
+    const metaStr = opt?.flashvars?.metadata;
+    const parsed = typeof metaStr === 'string' ? tryParse(metaStr) : metaStr;
+    if (parsed && (parsed.videos || parsed.hlsManifestUrl)) {
+      attempts.push('data-options (scan semua)');
+      return { metadata: parsed, via: attempts };
+    }
+  }
+
   return { metadata: null, via: attempts };
 }
 
@@ -89,18 +114,32 @@ export async function GET(request) {
   }
 
   try {
-    const res = await axios.get(target, {
-      headers: { 'User-Agent': UA, Referer: ref },
-      timeout: 15000,
-      validateStatus: () => true
-    });
+    let html = '';
+    let metadata = null;
+    let via = [];
+    let lastStatus = 0;
 
-    if (res.status < 200 || res.status >= 300) {
-      return Response.json({ ok: false, error: `OK.ru balikin status ${res.status}` });
+    // Coba UA mobile dulu, kalau gagal parse coba UA desktop (markup bisa beda).
+    for (const ua of [UA, UA_DESKTOP]) {
+      const res = await axios.get(target, {
+        headers: { 'User-Agent': ua, Referer: ref, 'Accept-Language': 'id,en-US;q=0.9,en;q=0.8' },
+        timeout: 15000,
+        validateStatus: () => true
+      });
+      lastStatus = res.status;
+      if (res.status < 200 || res.status >= 300) continue;
+      html = String(res.data);
+      const r = extractMetadata(html);
+      via = r.via;
+      if (r.metadata) {
+        metadata = r.metadata;
+        break;
+      }
     }
 
-    const html = String(res.data);
-    const { metadata, via } = extractMetadata(html);
+    if (!html) {
+      return Response.json({ ok: false, error: `OK.ru balikin status ${lastStatus}` });
+    }
 
     if (!metadata) {
       return Response.json({
