@@ -123,11 +123,25 @@ export default function AnichinVideoPlayer({ defaultPlayer, servers = [] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedOkRuUrl]);
 
+  // Hitung berapa server yang sudah otomatis dicoba, supaya gak muter selamanya.
+  const autoTriesRef = useRef(0);
+
   function nextServer() {
     if (autoQueue.length > 1) {
+      autoTriesRef.current = 0; // klik manual = mulai putaran baru
       setServerIndex((i) => (i + 1) % autoQueue.length);
     }
   }
+
+  // Gagal ambil link / gagal play → langsung pindah ke server berikutnya
+  // tanpa nunggu user pencet "Coba lagi". Berhenti setelah semua server dicoba.
+  useEffect(() => {
+    if (!okruError && !okruPlaybackError) return;
+    if (autoTriesRef.current >= autoQueue.length - 1) return;
+    autoTriesRef.current += 1;
+    setServerIndex((i) => (i + 1) % autoQueue.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [okruError, okruPlaybackError]);
 
   const iframeSrc = current && !currentIsOkRu ? toEmbeddable(current.url) : null;
   const activeOkruVideo = okruVideos?.[okruQualityIndex];
