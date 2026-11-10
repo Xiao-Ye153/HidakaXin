@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from '../../components/CardImage';
 import JadwalCard from '../../components/JadwalCard';
 import MissionTrack from '../../components/MissionTrack';
 import scraper from '../../lib/scraper';
@@ -92,12 +93,10 @@ export default async function JadwalPage({ searchParams }) {
           {list.slice(0, 12).map((item, i) => (
             <Link key={item.url + i} href={hrefForScheduleItem(item)} className="flex-shrink-0">
               {item.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <CardImage
                   src={item.image}
                   alt={item.title}
                   className="h-14 w-14 rounded-xl border border-line object-cover shadow-card"
-                  loading="lazy"
                 />
               ) : (
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-line bg-paper-soft text-ink-faint">?</div>
