@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from './CardImage';
 import RevealOnView from './RevealOnView';
 
 export default function NovelCard({ item, index = 0 }) {
@@ -9,11 +10,9 @@ export default function NovelCard({ item, index = 0 }) {
       <Link href={`/novel/${item.slug}`} className="group block">
         <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-line bg-paper-soft shadow-card">
           {item.cover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <CardImage
               src={item.cover}
               alt={item.title}
-              loading="lazy"
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
           ) : (
