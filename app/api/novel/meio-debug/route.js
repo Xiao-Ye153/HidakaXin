@@ -3,10 +3,12 @@ import {
   searchMeioNovels,
   getLatestMeioNovels,
   getMeioNovelDetail,
+  diagnoseMeio,
   scrapeMeioChapter
 } from '../../../../lib/meioNovelScraper';
 
 // Usage:
+//  /api/novel/meio-debug?mode=diagnose   <- mulai dari sini kalau novel kosong
 //  /api/novel/meio-debug?mode=search&q=jadi+ibu+kos
 //  /api/novel/meio-debug?mode=latest
 //  /api/novel/meio-debug?mode=detail&slug=jadi-ibu-kos-di-dunia-game
@@ -16,6 +18,10 @@ export async function GET(request) {
   const mode = searchParams.get('mode') || 'latest';
 
   try {
+    if (mode === 'diagnose') {
+      return NextResponse.json({ mode, ...(await diagnoseMeio()) });
+    }
+
     if (mode === 'search') {
       const q = searchParams.get('q') || '';
       const results = await searchMeioNovels(q, { limit: 10 });
