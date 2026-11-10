@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from '../../../components/CardImage';
 import anichin from '../../../lib/anichinScraper';
 import FavoriteButton from '../../../components/FavoriteButton';
 
@@ -31,8 +32,7 @@ export default async function AnichinDetailPage({ params }) {
       <div className="grid gap-6 sm:grid-cols-[180px_1fr]">
         <div className="overflow-hidden rounded-xl border border-line shadow-card">
           {d.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={d.image} alt={d.title} className="w-full object-cover" />
+            <CardImage src={d.image} alt={d.title} className="aspect-[2/3] w-full object-cover" />
           ) : (
             <div className="flex aspect-[2/3] items-center justify-center bg-paper-soft text-ink-faint font-display text-4xl">?</div>
           )}
@@ -85,8 +85,7 @@ export default async function AnichinDetailPage({ params }) {
               <Link key={r.slug + i} href={`/anime-ac/${r.slug}`} className="group">
                 <div className="overflow-hidden rounded-xl border border-line bg-paper-soft shadow-card">
                   {r.poster ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <CardImage
                       src={r.poster}
                       alt={r.title}
                       className="aspect-[2/3] w-full object-cover transition group-hover:scale-105"
