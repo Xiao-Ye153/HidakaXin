@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import CardImage from '../components/CardImage';
+import DubbindoCard from '../components/DubbindoCard';
+import dubbindo from '../lib/dubbindoScraper';
 import AnimeCard from '../components/AnimeCard';
 import AnimeRow from '../components/AnimeRow';
 import JadwalCard from '../components/JadwalCard';
@@ -82,12 +84,13 @@ async function getData() {
   const source = getDonghuaSource();
   const animeSource = getAnimeSource();
   const animeClient = animeSource === 'samehadaku' ? samehadaku : sanka;
-  const [donghua, sankaHome, komikPayload, webtoonPayload, novels] = await Promise.all([
+  const [donghua, sankaHome, komikPayload, webtoonPayload, novels, dubPayload] = await Promise.all([
     getDonghuaData(source),
     animeClient.home().catch(() => null),
     manga.home().catch(() => null),
     webtoons.trending('daily').catch(() => []),
-    getNovels()
+    getNovels(),
+    dubbindo.latest(1).catch(() => null)
   ]);
 
   return {
@@ -100,12 +103,13 @@ async function getData() {
       (komikPayload?.items || []).map(normalizeWestmanhwa),
       (webtoonPayload || []).map(normalizeWebtoon)
     ),
-    novels
+    novels,
+    dubbing: (dubPayload?.results || []).slice(0, 6)
   };
 }
 
 export default async function HomePage() {
-  const { donghua, animeSource, sankaOngoing, sankaCompleted, komik, novels } = await getData();
+  const { donghua, animeSource, sankaOngoing, sankaCompleted, komik, novels, dubbing } = await getData();
 
   const mergedLatest = shuffleTogether(donghua.latest, sankaOngoing.map((i) => normalizeSanka(i, animeSource)));
   const mergedPopular = shuffleTogether(donghua.popular, sankaCompleted.map((i) => normalizeSanka(i, animeSource)));
@@ -177,6 +181,17 @@ export default async function HomePage() {
           <div className="grid grid-cols-3 gap-3">
             {mergedPopular.slice(0, 9).map((item, i) => (
               <AnimeCard key={item.url + i} item={item} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {dubbing?.length > 0 && (
+        <section className="mb-8">
+          <SectionHeader title="Film Dubbing Indo" href="/dubbindo" />
+          <div className="grid grid-cols-2 gap-4">
+            {dubbing.map((item, i) => (
+              <DubbindoCard key={item.url + i} item={item} />
             ))}
           </div>
         </section>
