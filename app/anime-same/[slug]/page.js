@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from '../../../components/CardImage';
 import RevealOnView from '../../../components/RevealOnView';
 import samehadaku from '../../../lib/samehadakuScraper';
 
@@ -40,8 +41,7 @@ export default async function AnimeSamehadakuDetailPage({ params }) {
         <RevealOnView>
           <div className="overflow-hidden rounded-xl border border-line shadow-card">
             {d.poster ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={d.poster} alt={displayTitle} className="w-full object-cover" />
+              <CardImage src={d.poster} alt={displayTitle} className="aspect-[2/3] w-full object-cover" />
             ) : (
               <div className="flex aspect-[2/3] items-center justify-center bg-paper-soft text-ink-faint font-display text-4xl">?</div>
             )}
@@ -106,8 +106,7 @@ export default async function AnimeSamehadakuDetailPage({ params }) {
               <Link key={r.animeId} href={`/anime-same/${r.animeId}`} className="group">
                 <div className="overflow-hidden rounded-xl border border-line bg-paper-soft shadow-card">
                   {r.poster ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <CardImage
                       src={r.poster}
                       alt={r.title}
                       className="aspect-[2/3] w-full object-cover transition group-hover:scale-105"
