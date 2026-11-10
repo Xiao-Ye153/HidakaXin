@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from '../components/CardImage';
 import AnimeCard from '../components/AnimeCard';
 import AnimeRow from '../components/AnimeRow';
 import JadwalCard from '../components/JadwalCard';
@@ -129,8 +130,7 @@ export default async function HomePage() {
 
           <Link href={hrefForItem(donghua.heroItem)} className="mb-3 block overflow-hidden rounded-2xl border border-line shadow-card">
             <div className="relative aspect-[16/9] bg-paper-soft">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={donghua.heroItem.image} alt={donghua.heroItem.title} className="h-full w-full object-cover" />
+              <CardImage src={donghua.heroItem.image} alt={donghua.heroItem.title} className="h-full w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                 <p className="text-xs font-semibold text-accent-50">{donghua.heroItem.genres?.[0]}</p>
                 <p className="line-clamp-1 text-lg font-extrabold text-white">{donghua.heroItem.title}</p>
