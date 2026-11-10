@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from './CardImage';
 import { shortLabel } from '../lib/normalize';
 
 function slugFromUrl(url) {
@@ -36,8 +37,7 @@ export default function AnimeRow({ item, watchMode = false }) {
     >
       <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-paper-soft">
         {item.image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+          <CardImage src={item.image} alt={item.title} className="h-full w-full object-cover" />
         )}
       </div>
       <div className="min-w-0 flex-1 py-0.5">
