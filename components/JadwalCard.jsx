@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CardImage from './CardImage';
 import { shortLabel } from '../lib/normalize';
 
 function slugFromUrl(url) {
@@ -29,8 +30,7 @@ export default function JadwalCard({ item }) {
     <Link href={href} className="block">
       <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-line bg-paper-soft shadow-card">
         {item.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+          <CardImage src={item.image} alt={item.title} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-ink-faint font-display">?</div>
         )}
