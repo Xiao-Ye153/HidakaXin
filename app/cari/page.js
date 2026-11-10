@@ -11,6 +11,8 @@ import { getAnimeSource } from '../../lib/animeSource';
 import { STUDIOS } from '../../lib/studios';
 import { normalizeDonghua, normalizeAnichin, normalizeSanka, shuffleTogether } from '../../lib/normalize';
 import MissionTrack from '../../components/MissionTrack';
+import DubbindoCard from '../../components/DubbindoCard';
+import dubbindo from '../../lib/dubbindoScraper';
 
 const CARD_THEMES = [
   { bg: 'bg-paper-card', text: 'text-ink' },
@@ -32,9 +34,10 @@ async function getSearch(q, page) {
   const source = getDonghuaSource();
   const animeSource = getAnimeSource();
   const animeClient = animeSource === 'samehadaku' ? samehadaku : sanka;
-  const [donghuaPayload, animePayload] = await Promise.all([
+  const [donghuaPayload, animePayload, dubPayload] = await Promise.all([
     source === 'anichin' ? anichin.search(q, page).catch(() => null) : scraper.search(q, page).catch(() => null),
-    animeClient.search(q).catch(() => null)
+    animeClient.search(q).catch(() => null),
+    dubbindo.search(q, 1).catch(() => null)
   ]);
 
   const donghuaResults = source === 'anichin'
@@ -44,6 +47,7 @@ async function getSearch(q, page) {
 
   return {
     results: shuffleTogether(donghuaResults, animeResults),
+    dubbing: dubPayload?.results || [],
     pagination: source === 'anichin' ? null : donghuaPayload?.data?.pagination || null
   };
 }
@@ -70,7 +74,9 @@ export default async function CariPage({ searchParams }) {
           Hasil untuk &ldquo;{q}&rdquo;
         </h1>
         <p className="mb-5 text-sm text-ink-soft">
-          {data.results.length ? `${data.results.length} judul ditemukan.` : 'Tidak ada hasil.'}
+          {data.results.length + data.dubbing.length
+            ? `${data.results.length + data.dubbing.length} judul ditemukan.`
+            : 'Tidak ada hasil.'}
         </p>
 
         {data.results.length > 0 && (
@@ -82,6 +88,20 @@ export default async function CariPage({ searchParams }) {
             </div>
             <Pagination current={data.pagination?.current || page} total={data.pagination?.total} basePath="/cari" extraQuery={`&q=${encodeURIComponent(q)}`} />
           </>
+        )}
+
+        {data.dubbing.length > 0 && (
+          <section className="mt-8">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-lg font-extrabold text-ink">Film Dubbing Indo</h2>
+              <Link href={`/dubbindo?q=${encodeURIComponent(q)}`} className="text-xs font-semibold text-accent">Lihat semua →</Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {data.dubbing.slice(0, 9).map((item, i) => (
+                <DubbindoCard key={item.url + i} item={item} />
+              ))}
+            </div>
+          </section>
         )}
 
         <Link href="/cari" className="mt-6 inline-block text-sm font-semibold text-accent">← Kembali jelajah kategori</Link>
